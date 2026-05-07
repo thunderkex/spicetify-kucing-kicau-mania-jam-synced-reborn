@@ -1,8 +1,8 @@
-# Cat-Jam Synced (Reborn)
+# kucing kicau mania-Jam Synced (Reborn)
 
 ![preview](assets/kicaumania.gif)
 
-A reborn and optimized Cat-Jam experience, perfectly in sync with your beat. Make a cat appear next to your progress bar, jamming along with your music synchronized to the beat!
+A reborn and optimized kucing kicau mania-Jam experience, perfectly in sync with your beat. Make a cat appear next to your progress bar, jamming along with your music synchronized to the beat!
 
 Beat data (BPM, beat timestamps, segments, loudness) comes from Spotify's internal audio analysis API endpoint - it sometimes isn't perfect...
 
@@ -28,11 +28,11 @@ Beat data (BPM, beat timestamps, segments, loudness) comes from Spotify's intern
     ```
 4. Copy the output to your Spicetify Extensions folder:
     ```bash
-    cp dist/cat-jam.js ~/.config/spicetify/Extensions/
+    cp dist/kucing kicau mania-Jam.js ~/.config/spicetify/Extensions/
     ```
 5. Apply the extension:
     ```bash
-    spicetify config extensions cat-jam.js
+    spicetify config extensions kucing kicau mania-Jam.js
     spicetify apply
     ```
 

@@ -1,6 +1,6 @@
 import { getAudioData } from '../audio/audio'
 import { getLoudnessAt, normalizeLoudness, getInstantBPM } from '../audio/analyzer'
-import { cachedSettings } from '../settings/settings'
+import { getSettingsSnapshot } from '../settings/settings'
 
 // fallback constants — actual values come from cachedSettings at runtime
 export const PARTY_BPM_THRESHOLD = 130
@@ -17,7 +17,6 @@ let hueOffset = 0
 let _lastBpm = 0
 let _lastLoudness = 0
 let partyActiveUntil = 0
-let cooldownUntil = 0
 
 function createCanvas(): HTMLCanvasElement {
 	const el = document.createElement('canvas')
@@ -42,10 +41,11 @@ export function updatePartyMode(videoElement: HTMLVideoElement, progressMs: numb
 	const bpm = (getInstantBPM(audioData.beats, progressSec) || audioData.track?.tempo) ?? 0
 
 	const now = performance.now()
-	const bpmThreshold = cachedSettings.partyBpmThreshold as number
-	const loudnessThreshold = cachedSettings.partyLoudnessDb as number
+	const settings = getSettingsSnapshot()
+	const bpmThreshold = settings.partyBpmThreshold as number
+	const loudnessThreshold = settings.partyLoudnessDb as number
 	if (bpm >= bpmThreshold && loudnessDb >= loudnessThreshold) {
-		const cooldown = cachedSettings.partyCooldownMs ?? 1000
+		const cooldown = settings.partyCooldownMs ?? 1000
 		partyActiveUntil = now + cooldown
 	}
 	const shouldBeActive = now < partyActiveUntil

@@ -1,6 +1,7 @@
 import { APP_CONFIG } from '../config'
 import { getLoudnessAt, normalizeLoudness } from './analyzer'
 import { computeNextRate } from '../sync/algorithm'
+import { getCustomDrops, getCustomDuration } from '../settings/drops-editor'
 
 interface WorkerConfig {
 	maxScale: number
@@ -58,13 +59,16 @@ function process(payload: ProcessPayload): { playbackRate: number; scale: number
 	const { progressMs, videoTime, perfLevel } = payload
 	const progressSec = progressMs / 1000
 
+	const headDrops = getCustomDrops() ?? APP_CONFIG.CAT_HEAD_DROPS
+	const videoDuration = getCustomDuration() ?? APP_CONFIG.VIDEO_DURATION
+
 	currentRate = computeNextRate(
 		currentRate,
 		progressSec,
 		videoTime,
 		audioData.beats,
-		APP_CONFIG.CAT_HEAD_DROPS,
-		APP_CONFIG.VIDEO_DURATION,
+		headDrops,
+		videoDuration,
 		perfLevel ?? 'high',
 		config.clampMax
 	)

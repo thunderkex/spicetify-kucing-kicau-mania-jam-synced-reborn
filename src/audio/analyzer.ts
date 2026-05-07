@@ -24,15 +24,19 @@ export function getLoudnessAt(segments: any[], timeSec: number): number {
 
 	const segment = segments[mid]
 	if (!segment) return -60
+	// Validate that the found segment actually contains timeSec
+	if (!(segment.start <= timeSec && segment.start + segment.duration > timeSec)) return -60
 
 	const timeInSegment = timeSec - segment.start
 	const maxTime = segment.loudness_max_time
 
 	if (timeInSegment < maxTime) {
+		if (maxTime <= 0) return segment.loudness_start
 		const t = timeInSegment / maxTime
 		return segment.loudness_start + t * (segment.loudness_max - segment.loudness_start)
 	} else {
 		const remainingTime = segment.duration - maxTime
+		if (remainingTime <= 0) return segment.loudness_max
 		const t = (timeInSegment - maxTime) / remainingTime
 		const nextStart = segments[mid + 1]?.loudness_start ?? segment.loudness_max
 		return segment.loudness_max + t * (nextStart - segment.loudness_max)

@@ -1,8 +1,10 @@
 import { fetchAudioData } from '../audio/audio'
 import { syncTiming, getVideoElement } from '../video/video'
 import { getRateBuffer } from './rate-buffer'
+import { syncEngine } from './engine'
 import { resetBeatAccuracy } from '../debug/overlay'
 import { destroyPartyOverlay } from '../video/party-mode'
+import { snapshotSettings } from '../settings/settings'
 
 type WorkerRef = { worker: Worker | null; ready: boolean }
 
@@ -15,7 +17,7 @@ export function registerPlayerEvents(workerRef: WorkerRef, startLoop: () => void
 
 	Spicetify.Player.addEventListener('onplaypause', () => {
 		const progress = Spicetify.Player.getProgress()
-		syncTiming(performance.now(), progress)
+		syncTiming(progress)
 		if (Spicetify.Player.isPlaying()) {
 			startLoop()
 		} else {
@@ -27,8 +29,8 @@ export function registerPlayerEvents(workerRef: WorkerRef, startLoop: () => void
 	let lastProgress = 0
 	Spicetify.Player.addEventListener('onprogress', () => {
 		const progress = Spicetify.Player.getProgress()
-		if (Math.abs(progress - lastProgress) >= 3000) {
-			syncTiming(performance.now(), progress)
+		if (Math.abs(progress - lastProgress) >= 1000) {
+			syncTiming(progress)
 			workerRef.worker?.postMessage({ type: 'resetRate' })
 			clearBuffers()
 		}
@@ -42,10 +44,16 @@ export function registerPlayerEvents(workerRef: WorkerRef, startLoop: () => void
 		clearBuffers()
 		resetBeatAccuracy()
 		destroyPartyOverlay()
+		syncEngine.reset()
+		snapshotSettings()
 
 		const startTime = performance.now()
 		const audioData = await fetchAudioData()
 		videoElement.playbackRate = 1
+
+		if (audioData) {
+			workerRef.worker?.postMessage({ type: 'setAudioData', data: audioData })
+		}
 
 		if (audioData?.beats?.length) {
 			const delay = Math.max(

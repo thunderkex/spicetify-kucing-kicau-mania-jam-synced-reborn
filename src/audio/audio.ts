@@ -59,29 +59,6 @@ export async function fetchAudioData(
 	}
 }
 
-export async function getPlaybackRate(data: any): Promise<number> {
-	const videoDefaultBPM = cachedSettings.bpm
-
-	if (data?.track) {
-		const trackBPM = data.track.tempo
-		let bpmToUse = trackBPM
-
-		if (cachedSettings.bpmMethod !== APP_CONFIG.LABELS.METHOD.TRACK) {
-			bpmToUse = await getBetterBPM(trackBPM)
-		}
-
-		const playbackRate = bpmToUse ? bpmToUse / videoDefaultBPM : 1
-		console.debug(
-			`[CAT-JAM] Track BPM: ${trackBPM}, Effective BPM: ${bpmToUse}, Playback Rate: ${playbackRate}`
-		)
-
-		return playbackRate
-	}
-
-	console.warn('[CAT-JAM] BPM data not available, using default rate.')
-	return 1
-}
-
 async function getBetterBPM(currentBPM: number): Promise<number> {
 	const uri = Spicetify.Player.data?.item?.uri
 	if (!uri) return currentBPM
@@ -122,7 +99,7 @@ function calculateBetterBPM(danceability: number, energy: number, currentBPM: nu
 	if (ne < 0.5) ew *= ne
 	if (nb < APP_CONFIG.ALGORITHM.BPM_THRESHOLD) bw = 0.9
 
-	const divisor = 1 - dw + 1 - ew + bw
+	const divisor = dw + ew + bw
 	const weightedAverage = divisor !== 0 ? (nd * dw + ne * ew + nb * bw) / divisor : nb
 	let betterBPM = weightedAverage * scale
 

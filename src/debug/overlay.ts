@@ -1,4 +1,4 @@
-import { renderDebugContent, resetBeatAccuracy as _resetBeatAccuracy } from './renderer'
+import { renderDebugContent, resetBeatAccuracy as _resetBeatAccuracy, clearDomNodes } from './renderer'
 
 declare const __APP_VERSION__: string
 
@@ -23,6 +23,7 @@ export function resetBeatAccuracy() {
 function createOverlayElement(): HTMLDivElement {
 	const existing = document.getElementById('catjam-debug-overlay')
 	if (existing) existing.remove()
+	clearDomNodes()
 
 	const el = document.createElement('div')
 	el.id = 'catjam-debug-overlay'

@@ -62,8 +62,9 @@ export function fileInputControl(id: string, def: string): HTMLElement {
 		const file = fileInput.files?.[0]
 		if (!file) return
 
-		if (file.size > 5 * 1024 * 1024) {
-			Spicetify.showNotification('File too large (> 5MB). Storage may fail.')
+		// Base64 encoding adds ~33% overhead, so warn before the encoded result exceeds quota
+		if (file.size > 3.75 * 1024 * 1024) {
+			Spicetify.showNotification('File too large (> 3.75MB). Encoded size may exceed storage quota.')
 		}
 
 		const reader = new FileReader()
@@ -79,15 +80,22 @@ export function fileInputControl(id: string, def: string): HTMLElement {
 	return wrap
 }
 
-export function numberControl(id: string, def: number, unit?: string): HTMLElement {
+export function numberControl(id: string, def: number, unit?: string, min?: number, max?: number): HTMLElement {
 	const wrap = document.createElement('div')
 	wrap.style.cssText = 'display: flex; align-items: center; gap: 5px;'
 	const el = document.createElement('input')
 	el.type = 'number'
 	el.value = getSaved(id, String(def))
 	el.style.cssText = baseInput + 'width: 60px; text-align: right;'
+	if (min !== undefined) el.min = String(min)
+	if (max !== undefined) el.max = String(max)
 	addFocusStyle(el)
-	el.addEventListener('change', () => setSaved(id, el.value))
+	el.addEventListener('change', () => {
+		let val = Number(el.value)
+		if (min !== undefined && val < min) { val = min; el.value = String(min) }
+		if (max !== undefined && val > max) { val = max; el.value = String(max) }
+		setSaved(id, String(val))
+	})
 	wrap.appendChild(el)
 	if (unit) {
 		const u = document.createElement('span')

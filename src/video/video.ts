@@ -5,7 +5,6 @@ import { syncEngine } from '../sync/engine'
 import type { PerformanceLevel } from '../performance'
 
 let videoElement: HTMLVideoElement | null = null
-let lastSyncBeatIndex = -1
 
 export function getVideoElement() {
 	return videoElement
@@ -34,12 +33,11 @@ export function syncVideoToMusicBeat(progressMs: number, perfLevel: PerformanceL
 	videoElement.playbackRate = rate
 }
 
-export function syncTiming(startTime: number, progress: number) {
+export function syncTiming(progress: number) {
 	if (!videoElement) return
 
 	if (Spicetify.Player.isPlaying()) {
 		syncEngine.reset()
-		lastSyncBeatIndex = -1
 		videoElement.play()
 	} else {
 		videoElement.pause()
@@ -121,10 +119,6 @@ export async function createWebMVideo() {
 		} else {
 			targetElement.appendChild(videoElement)
 		}
-
-		// reset sync state
-		lastSyncBeatIndex = -1
-		syncEngine.reset()
 
 		if (Spicetify.Player.isPlaying()) {
 			videoElement.play()

@@ -93,3 +93,22 @@ export const cachedSettings = new Proxy({} as any, {
 		return raw || schema.default
 	},
 })
+
+export type SettingsSnapshot = {
+	[K in SchemaKey]: any
+}
+
+let _snapshot: SettingsSnapshot | null = null
+
+export function snapshotSettings(): SettingsSnapshot {
+	const snap = {} as any
+	for (const key of Object.keys(SETTINGS_SCHEMA) as SchemaKey[]) {
+		snap[key] = cachedSettings[key]
+	}
+	_snapshot = snap
+	return snap
+}
+
+export function getSettingsSnapshot(): SettingsSnapshot {
+	return _snapshot ?? snapshotSettings()
+}

@@ -1,13 +1,10 @@
 import { APP_CONFIG } from '../config'
 import { cachedSettings } from '../settings/settings'
-import processorWorkerCode from '../audio/processor.worker?worker'
+import ProcessorWorker from '../audio/processor.worker?worker'
 
 export function createSyncWorker(): Worker | null {
 	try {
-		const blob = new Blob([processorWorkerCode as unknown as string], {
-			type: 'application/javascript',
-		})
-		const worker = new Worker(URL.createObjectURL(blob))
+		const worker = new ProcessorWorker()
 
 		worker.postMessage({
 			type: 'setConfig',

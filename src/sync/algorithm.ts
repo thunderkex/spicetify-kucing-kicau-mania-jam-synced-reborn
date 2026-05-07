@@ -8,10 +8,21 @@ export function findNextBeat(
 	progressSec: number,
 	beats: any[]
 ): { index: number; time: number } | null {
-	for (let i = 0; i < beats.length; i++) {
-		if (beats[i].start > progressSec) return { index: i, time: beats[i].start }
+	// Binary search for first beat with start > progressSec
+	let low = 0
+	let high = beats.length - 1
+	let result = -1
+	while (low <= high) {
+		const mid = (low + high) >> 1
+		if (beats[mid].start > progressSec) {
+			result = mid
+			high = mid - 1
+		} else {
+			low = mid + 1
+		}
 	}
-	return null
+	if (result === -1) return null
+	return { index: result, time: beats[result].start }
 }
 
 export function getTimeUntilNextDrop(videoTime: number, drops: number[], duration: number): number {

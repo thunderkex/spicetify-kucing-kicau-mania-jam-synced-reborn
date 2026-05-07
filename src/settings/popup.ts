@@ -1,4 +1,4 @@
-import { SETTINGS_SCHEMA } from './settings'
+import { SETTINGS_SCHEMA, snapshotSettings } from './settings'
 import { toggleDebugOverlay, isDebugVisible } from '../debug/overlay'
 import { inputControl, fileInputControl, numberControl, dropdownControl, settingsRow, settingsSection, actionBtn } from './popup-ui'
 import { openDropsEditor } from './drops-editor'
@@ -68,42 +68,42 @@ function buildPopup(): HTMLDivElement {
 	body.appendChild(
 		settingsRow('Position', dropdownControl(s.position.id, [...s.position.options]))
 	)
-	body.appendChild(settingsRow('Left Size', numberControl(s.size.id, s.size.default, '%')))
+	body.appendChild(settingsRow('Left Size', numberControl(s.size.id, s.size.default, '%', 1, 100)))
 
 	const dropsBtn = actionBtn('🥁 Edit Drop Timestamps', () => openDropsEditor(), true)
 	dropsBtn.style.cssText += 'width: 100%; margin-top: 6px; text-align: center;'
 	body.appendChild(dropsBtn)
 	body.appendChild(settingsSection('🐱', 'Cat'))
-	body.appendChild(settingsRow('Size', numberControl(s.catSize.id, s.catSize.default, 'px')))
+	body.appendChild(settingsRow('Size', numberControl(s.catSize.id, s.catSize.default, 'px', 20, 500)))
 	body.appendChild(
 		settingsRow(
 			'Pulse intensity',
-			numberControl(s.pulseIntensity.id, s.pulseIntensity.default, '×')
+			numberControl(s.pulseIntensity.id, s.pulseIntensity.default, '×', 0, 3)
 		)
 	)
 
 	body.appendChild(settingsSection('⚙', 'Sync'))
 	body.appendChild(
-		settingsRow('Aggressiveness', numberControl(s.syncClampMax.id, s.syncClampMax.default, '×'))
+		settingsRow('Aggressiveness', numberControl(s.syncClampMax.id, s.syncClampMax.default, '×', 1.0, 2.0))
 	)
 
 	body.appendChild(settingsSection('🎉', 'Party Mode'))
 	body.appendChild(
 		settingsRow(
 			'BPM threshold',
-			numberControl(s.partyBpmThreshold.id, s.partyBpmThreshold.default, 'BPM')
+			numberControl(s.partyBpmThreshold.id, s.partyBpmThreshold.default, 'BPM', 60, 300)
 		)
 	)
 	body.appendChild(
 		settingsRow(
 			'Loudness threshold',
-			numberControl(s.partyLoudnessDb.id, s.partyLoudnessDb.default, 'dB')
+			numberControl(s.partyLoudnessDb.id, s.partyLoudnessDb.default, 'dB', -60, 0)
 		)
 	)
 	body.appendChild(
 		settingsRow(
 			'Cooldown',
-			numberControl(s.partyCooldownMs.id, s.partyCooldownMs.default, 'ms')
+			numberControl(s.partyCooldownMs.id, s.partyCooldownMs.default, 'ms', 0, 10000)
 		)
 	)
 
@@ -119,6 +119,7 @@ function buildPopup(): HTMLDivElement {
 	`
 
 	const saveBtn = actionBtn('Save & Reload', () => {
+		snapshotSettings()
 		onSave?.()
 		closePopup()
 	})

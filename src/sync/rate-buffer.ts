@@ -38,7 +38,6 @@ export const BUFFER_CONFIGS = {
 export class RateBuffer {
 	private buffer: RateEntry[] = []
 	private lastOutputRate: number = 1
-	private lastOutputTime: number = 0
 
 	constructor(private config: BufferConfig = BUFFER_CONFIGS.high) {}
 
@@ -120,12 +119,11 @@ export class RateBuffer {
 			}
 
 			this.lastOutputRate = adjustedRate
-			this.lastOutputTime = currentTime
+
 			return { rate: adjustedRate, isBuffered: true, shouldSkip: false }
 		}
 
 		this.lastOutputRate = rate
-		this.lastOutputTime = currentTime
 		return { rate, isBuffered: isBuffered, shouldSkip: false }
 	}
 

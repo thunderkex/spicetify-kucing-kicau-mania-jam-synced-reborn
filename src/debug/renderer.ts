@@ -50,6 +50,10 @@ function measureDrift(videoTime: number): number {
 
 const domNodes = new Map<string, { valueEl: HTMLElement; lastValue?: string; lastColor?: string }>()
 
+export function clearDomNodes() {
+	domNodes.clear()
+}
+
 function renderSeparator(container: HTMLElement, id: string, title?: string) {
 	if (domNodes.has(id)) return
 

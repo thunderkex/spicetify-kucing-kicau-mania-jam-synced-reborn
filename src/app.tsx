@@ -1,5 +1,5 @@
 import { APP_CONFIG } from './config'
-import { cachedSettings } from './settings/settings'
+import { getSettingsSnapshot, snapshotSettings } from './settings/settings'
 import { getDynamicAnalysis, getAudioData } from './audio/audio'
 import { createWebMVideo, syncTiming, getVideoElement, syncVideoToMusicBeat } from './video/video'
 import { performanceMonitor, createTimedRAF } from './performance'
@@ -10,13 +10,18 @@ import { setupSettingsTrigger } from './settings/popup'
 import { createSyncWorker } from './sync/worker-factory'
 import { registerPlayerEvents } from './sync/player-events'
 
+let initialized = false
+
 async function main() {
+	if (initialized) return
+	initialized = true
 	console.log('[CAT-JAM] Extension initializing...')
 	while (!Spicetify?.Player?.addEventListener || !Spicetify?.getAudioData) {
 		await new Promise((resolve) => setTimeout(resolve, APP_CONFIG.DEFAULTS.SYNC_INTERVAL))
 	}
 
 	await createWebMVideo()
+	snapshotSettings()
 
 	const initSettings = () => {
 		const videoEl = getVideoElement()
@@ -67,34 +72,36 @@ async function main() {
 
 		updateDebugMetrics({ progressMs: progress, perfLevel, workerActive: workerRef.ready })
 
-		if (workerRef.worker && workerRef.ready) {
+		if (!performanceMonitor.shouldSkipFrame()) {
 			const audioData = getAudioData()
-			if (audioData) {
-				workerRef.worker.postMessage({
-					type: 'process',
-					data: {
-						progressMs: progress,
-						audioData,
-						perfLevel,
-						videoTime: getVideoElement()?.currentTime ?? 0,
-					},
-				})
-			}
-		} else {
-			syncVideoToMusicBeat(progress, perfLevel)
-			const { loudness } = getDynamicAnalysis(progress)
-			const videoElement = getVideoElement()
-			if (videoElement) {
-				const scale =
-					1 +
-					loudness * ((cachedSettings.pulseIntensity ?? APP_CONFIG.VISUAL.MAX_SCALE) - 1)
-				videoElement.style.transform = `scale(${scale})`
-				updateDebugMetrics({ targetRate: videoElement.playbackRate })
-			}
-		}
 
-		const vid = getVideoElement()
-		if (vid) updatePartyMode(vid, progress)
+			if (workerRef.worker && workerRef.ready) {
+				if (audioData) {
+					workerRef.worker.postMessage({
+						type: 'process',
+						data: {
+							progressMs: progress,
+							perfLevel,
+							videoTime: getVideoElement()?.currentTime ?? 0,
+						},
+					})
+				}
+			} else {
+				syncVideoToMusicBeat(progress, perfLevel)
+				const { loudness } = getDynamicAnalysis(progress)
+				const videoElement = getVideoElement()
+				if (videoElement) {
+					const scale =
+						1 +
+						loudness * ((getSettingsSnapshot().pulseIntensity ?? APP_CONFIG.VISUAL.MAX_SCALE) - 1)
+					videoElement.style.transform = `scale(${scale})`
+					updateDebugMetrics({ targetRate: videoElement.playbackRate })
+				}
+			}
+
+			const vid = getVideoElement()
+			if (vid) updatePartyMode(vid, progress)
+		}
 
 		animationId = requestAnimationFrame(updateLoop)
 	})
